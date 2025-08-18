@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Product;
+import com.example.demo.entity.ProductDesc;
 import com.example.demo.repository.ProductRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +23,24 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
+    @Autowired
+    private ProductDescService productDescService;
     /**
      * Save a product.
      *
      * @param product the entity to save
      * @return the persisted entity
      */
+    @Transactional
     public Product saveProduct(Product product) {
-        return productRepository.save(product);
+        Product saveProd = this.productRepository.save(product);
+
+        ProductDesc description = new ProductDesc();
+
+        description.setDescription("description");
+        description.setProduct(product);
+        this.productDescService.addDescription(description);
+        return saveProd;
     }
 
     /**
