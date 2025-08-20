@@ -1,8 +1,19 @@
 package com.example.demo.entity;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.ToString;
 
 @Entity
 @Table(name = "product_desc")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+
 public class ProductDesc {
 
     @Id
@@ -16,31 +27,4 @@ public class ProductDesc {
     @JoinColumn(name = "product_id", referencedColumnName = "id")
     private Product product;
 
-
-    // Constructors, getters and setters, and other methods...
-
-    // Getters
-    public Long getId() {
-        return id;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-    public Product getProduct() {
-        return product;
-    }
-
-
-    // Setters
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public void setProduct(Product product) {
-        this.product = product;
-    }
 }

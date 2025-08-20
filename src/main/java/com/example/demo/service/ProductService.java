@@ -4,7 +4,7 @@ import com.example.demo.entity.Product;
 import com.example.demo.entity.ProductDesc;
 import com.example.demo.repository.ProductRepository;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,17 +14,13 @@ import java.util.Optional;
  * Service class for managing Product entities.
  */
 @Service
+@RequiredArgsConstructor
+
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ProductDescService productDescService;
 
-    @Autowired
-    public ProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
-
-    @Autowired
-    private ProductDescService productDescService;
     /**
      * Save a product.
      *
