@@ -1,89 +1,41 @@
 package com.example.demo.service;
 
 import com.example.demo.entity.Product;
-import com.example.demo.entity.ProductDesc;
+import com.example.demo.entity.Stock;
+import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.ProductRepository;
-import jakarta.transaction.Transactional;
+import com.example.demo.repository.StockRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
-
-/**
- * Service class for managing Product entities.
- */
 @Service
 @RequiredArgsConstructor
 
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final ProductDescService productDescService;
+    private final StockRepository stockRepository;
+    private final CategoryRepository categoryRepository;
 
-    /**
-     * Save a product.
-     *
-     * @param product the entity to save
-     * @return the persisted entity
-     */
+    // Transaction Example: create product + initial stock
     @Transactional
-    public Product saveProduct(Product product) {
-        Product saveProd = this.productRepository.save(product);
+    public Product createProductWithStock(Product product, int initialQuantity) {
+        // Save product
+        Product savedProduct = productRepository.save(product);
 
-        ProductDesc description = new ProductDesc();
+        // Create stock entry
+        Stock stock = Stock.builder()
+                .quantity(initialQuantity)
+                .product(savedProduct)
+                .build();
 
-        description.setDescription("description");
-        description.setProduct(product);
-        this.productDescService.addDescription(description);
-        return saveProd;
-    }
+        stockRepository.save(stock);
 
-    /**
-     * Get all the products.
-     *
-     * @return the list of entities
-     */
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
-    }
+        // Link back (optional)
+        savedProduct.setStock(stock);
 
-    /**
-     * Get one product by ID.
-     *
-     * @param id the ID of the entity
-     * @return the entity
-     */
-    public Optional<Product> getProductById(Long id) {
-        return productRepository.findById(id);
-    }
-
-    /**
-     * Update a product.
-     *
-     * @param id the ID of the entity
-     * @param updatedProduct the updated entity
-     * @return the updated entity
-     */
-    public Product updateProduct(Long id, Product updatedProduct) {
-        Optional<Product> existingProduct = productRepository.findById(id);
-        if (existingProduct.isPresent()) {
-            Product product = existingProduct.get();
-            product.setName(updatedProduct.getName());
-            product.setPrice(updatedProduct.getPrice());
-            product.setQuantity(updatedProduct.getQuantity());
-            return productRepository.save(product);
-        } else {
-            throw new RuntimeException("Product not found");
-        }
-    }
-
-    /**
-     * Delete the product by ID.
-     *
-     * @param id the ID of the entity
-     */
-    public void deleteProduct(Long id) {
-        productRepository.deleteById(id);
+        return savedProduct;
     }
 }

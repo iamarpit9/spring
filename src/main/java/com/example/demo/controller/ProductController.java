@@ -1,81 +1,56 @@
 package com.example.demo.controller;
 
+import com.example.demo.dto.ProductRequest;
 import com.example.demo.entity.Product;
+import com.example.demo.repository.ProductRepository;
 import com.example.demo.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import jakarta.validation.Valid;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/products")
+@RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductRepository productRepository;
 
-    @Autowired
-    public ProductController(ProductService productService) {
-        this.productService = productService;
+    // Create product with stock
+    @PostMapping
+    public ResponseEntity<Product> create(@Valid @RequestBody ProductRequest request) {
+        Product product = Product.builder()
+                .name(request.getName())
+                .price(request.getPrice())
+                .description(request.getDescription())
+                .build();
+
+        Product saved = productService.createProductWithStock(product, request.getInitialStock());
+        return ResponseEntity.ok(saved);
     }
 
-    /**
-     * Create a new product.
-     *
-     * @param product the product to create
-     * @return the ResponseEntity with status 200 (OK) and with body of the new product
-     */
-    @PostMapping("/product")
-    public ResponseEntity<Product> saveProduct(@RequestBody Product product) {
-        Product newProduct = productService.saveProduct(product);
-        return ResponseEntity.ok(newProduct);
+    // Pagination + Sorting + Filtering
+    @GetMapping
+    public Page<Product> list(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Long categoryId,
+            Pageable pageable
+    ) {
+        // Later: add filtering with Specifications
+        return productRepository.findAll(pageable);
     }
 
-    /**
-     * Get all products.
-     *
-     * @return the ResponseEntity with status 200 (OK) and with body of the list of products
-     */
-    @GetMapping("/products")
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
-    }
-
-    /**
-     * Get a product by ID.
-     *
-     * @param id the ID of the product to get
-     * @return the ResponseEntity with status 200 (OK) and with body of the product, or with status 404 (Not Found) if the product does not exist
-     */
-    @GetMapping("/products/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = productService.getProductById(id);
-        return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
-    /**
-     * Update a product by ID.
-     *
-     * @param id the ID of the product to update
-     * @param product the updated product
-     * @return the ResponseEntity with status 200 (OK) and with body of the updated product, or with status 404 (Not Found) if the product does not exist
-     */
-    @PutMapping("/products/{id}")
-    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @RequestBody Product product) {
-        Product updatedProduct = productService.updateProduct(id, product);
-        return ResponseEntity.ok(updatedProduct);
-    }
-
-    /**
-     * Delete a product by ID.
-     *
-     * @param id the ID of the product to delete
-     * @return the ResponseEntity with status 200 (OK) and with body of the message "Product deleted successfully"
-     */
-    @DeleteMapping("/products/{id}")
-    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-        return ResponseEntity.ok("Product deleted successfully");
+    // Get single product
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getById(@PathVariable Long id) {
+        Optional<Product> product = productRepository.findById(id);
+        return product.map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 }
