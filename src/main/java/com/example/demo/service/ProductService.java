@@ -5,6 +5,9 @@ import com.example.demo.entity.Stock;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.ProductRepository;
 import com.example.demo.repository.StockRepository;
+import com.example.demo.dto.ProductRequest;
+import com.example.demo.dto.ProductResponse;
+import com.example.demo.mapper.ProductMapper;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,13 +24,20 @@ public class ProductService {
 
     // Transaction Example: create product + initial stock
     @Transactional
-    public Product createProductWithStock(Product product, int initialQuantity) {
+    public ProductResponse createProductWithStock(ProductRequest request) {
+
+        Product product = Product.builder()
+                .name(request.getName())
+                .price(request.getPrice())
+                .description(request.getDescription())
+                .build();
+
         // Save product
         Product savedProduct = productRepository.save(product);
 
         // Create stock entry
         Stock stock = Stock.builder()
-                .quantity(initialQuantity)
+                .quantity(request.getInitialStock())
                 .product(savedProduct)
                 .build();
 
@@ -36,6 +46,6 @@ public class ProductService {
         // Link back (optional)
         savedProduct.setStock(stock);
 
-        return savedProduct;
+        return ProductMapper.toDto(savedProduct);
     }
 }

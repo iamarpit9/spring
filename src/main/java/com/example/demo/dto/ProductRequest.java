@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 
 @Data
 public class ProductRequest {
-    @NotBlank
+    @NotBlank(message = "Product name is required")
     private String name;
 
-    @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @NotNull(message = "Price cannot be null")
+    @DecimalMin(value = "0.0", inclusive = false, message = "Price must be > 0")
     private BigDecimal price;
 
     private String description;
