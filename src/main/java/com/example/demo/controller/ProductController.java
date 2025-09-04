@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.dto.ProductRequest;
 import com.example.demo.repository.ProductRepository;
+import com.example.demo.service.FastProductService;
 import com.example.demo.service.ProductService;
 import com.example.demo.dto.ProductResponse;
 import com.example.demo.mapper.ProductMapper;
@@ -21,15 +22,25 @@ public class ProductController {
 
     private final ProductService productService;
     private final ProductRepository productRepository;
+    private final FastProductService fastProductService;
 
     // Create product with stock
+
     @PostMapping
     public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductRequest request) {
         return ResponseEntity.ok(productService.createProductWithStock(request));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getById(@PathVariable Long id,
+                                                   @RequestParam(name = "fast", defaultValue = "false") boolean fast
+    ) {
+        if (fast) {
+            return fastProductService.getProductFast(id)
+                    .map(ResponseEntity::ok)
+                    .orElse(ResponseEntity.notFound().build());
+        }
+
         return productRepository.findById(id)
                 .map(ProductMapper::toDto)
                 .map(ResponseEntity::ok)
